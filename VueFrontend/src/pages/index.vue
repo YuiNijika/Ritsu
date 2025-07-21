@@ -3,9 +3,9 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { CalendarOutlined } from '@ant-design/icons-vue';
 
-const baseURL = '/API';
-const hostURL = 'http://typecho.localhost:81/API';
-const apiURL = baseURL;
+const baseURL = '/ty-json';
+const hostURL = 'http://typecho.localhost:81/ty-json';
+const apiURL = hostURL;
 
 const loading = ref(false);
 const articles = ref([]);
@@ -35,33 +35,31 @@ const fetchArticles = async () => {
     });
 
     if (response.data.code === 200) {
-      articles.value = response.data.data.list;
-      pagination.value.total = response.data.data.pagination.total;
+      articles.value = response.data.data; 
+      pagination.value.total = response.data.meta.pagination.total; 
     }
   } catch (error) {
     console.error('Failed to fetch articles:', error);
-    // 显示错误提示
   } finally {
     loading.value = false;
   }
 };
-
-const fetchSiteTitle = async () => {
-  try {
-    const response = await axios.get(`${apiURL}/options/title`);
-    if (response.data.code === 200) {
-      siteTitle.value = response.data.data.value;
-      document.title = siteTitle.value;
-    }
-  } catch (error) {
-    console.error('Failed to fetch site title:', error);
-    // 显示错误提示
-  }
-};
+// const fetchSiteTitle = async () => {
+//   try {
+//     const response = await axios.get(`${apiURL}/options/title`);
+//     if (response.data.code === 200) {
+//       siteTitle.value = response.data.data.value;
+//       document.title = siteTitle.value;
+//     }
+//   } catch (error) {
+//     console.error('Failed to fetch site title:', error);
+//     // 显示错误提示
+//   }
+// };
 
 onMounted(() => {
   fetchArticles();
-  fetchSiteTitle();
+  // fetchSiteTitle();
 });
 </script>
 

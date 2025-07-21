@@ -50,9 +50,9 @@ class Get
                 $excluded = explode(',', $exclude);
                 foreach ($excluded as $item) {
                     $item = trim($item);
-                    // 匹配 meta name="xxx" 或 link rel="xxx"
+                    // 匹配 meta
                     $content = preg_replace(
-                        '/\s*<(meta\s+name=["\']' . preg_quote($item, '/') . '["\']|link\s+rel=["\']' . preg_quote($item, '/') . '["\'])[^>]*>\s*/i',
+                        '/\s*<(meta\s+(name|property)=["\']' . preg_quote($item, '/') . '["\']|link\s+rel=["\']' . preg_quote($item, '/') . '["\'])[^>]*>\s*/i',
                         '',
                         $content
                     );
@@ -128,6 +128,25 @@ class Get
             return $SiteUrl;
         } catch (Exception $e) {
             return self::handleError('获取站点URL失败', $e);
+        }
+    }
+    /**
+     * 获取站点域名
+     * 
+     * @param bool|null $echo 当设置为 true 时，会直接输出；
+     *                        当设置为 false 时，则返回结果值。
+     * @return string
+     */
+    public static function SiteDomain(?bool $echo = true)
+    {
+        try {
+            $SiteDomain = \Helper::options()->siteDomain;
+
+            if ($echo) echo $SiteDomain;
+
+            return $SiteDomain;
+        } catch (Exception $e) {
+            return self::handleError('获取站点域名失败', $e);
         }
     }
     /**
@@ -303,21 +322,52 @@ class Get
         return self::Need(self::buildFilePath('', $file));
     }
 
-    // 引入Template目录文件
+    /**
+     * 引入Template目录文件
+     * 
+     * @param string $file 模板文件名
+     * @return mixed
+     */
     public static function Template($file)
     {
-        return self::Need(self::buildFilePath('Template', $file));
+        return self::loadDirFile('Template', $file, '加载Template失败');
     }
 
-    // 引入Core文件
-    public static function Core($file)
+    /**
+     * 引入Layouts目录文件
+     * 
+     * @param string $file 布局文件名
+     * @return mixed
+     */
+    public static function Layouts($file)
     {
-        return self::Need(self::buildFilePath('Core', $file));
+        return self::loadDirFile('Layouts', $file, '加载Layouts失败');
     }
 
-    public static function CoreFunctions($file)
+    /**
+     * 通用目录文件加载方法
+     * 
+     * @param string $dirName 目录名（默认大小写）
+     * @param string $file 文件名
+     * @param string $errorMsg 错误消息
+     * @return mixed
+     */
+    private static function loadDirFile($dirName, $file, $errorMsg)
     {
-        return self::Need(self::buildFilePath('Core/TTDF/Functions', $file));
+        try {
+            $themeDir = self::getArchive()->getThemeDir();
+            $items = scandir($themeDir);
+
+            foreach ($items as $item) {
+                if (strtolower($item) === strtolower($dirName) && is_dir($themeDir . '/' . $item)) {
+                    return self::Need(self::buildFilePath($item, $file));
+                }
+            }
+
+            return self::Need(self::buildFilePath($dirName, $file));
+        } catch (Exception $e) {
+            return self::handleError($errorMsg, $e);
+        }
     }
 
     // 判断页面类型

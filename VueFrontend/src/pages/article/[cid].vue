@@ -18,9 +18,9 @@ import 'vue-easy-lightbox/external-css/vue-easy-lightbox.css';
 const router = useRouter();
 const route = useRoute();
 
-const baseURL = '/API';
-const hostURL = 'http://typecho.localhost:81/API';
-const apiURL = baseURL;
+const baseURL = '/ty-json';
+const hostURL = 'http://typecho.localhost:81/ty-json';
+const apiURL = hostURL;
 
 const loading = ref(false);
 const article = ref(null);
@@ -55,7 +55,7 @@ const fetchArticleContent = async () => {
 
         if (response.data.code === 200) {
             article.value = response.data.data;
-            document.title = `${article.value.title}`;
+            // document.title = `${article.value.title}`;
             await nextTick();
             highlightCode();
             initLightbox();
@@ -173,10 +173,13 @@ const shouldShowTOC = computed(() => {
 <template>
     <a-card class="article-container" size="default">
         <template v-if="error">
-            <a-alert type="error" :message="error" banner show-icon class="error-alert" />
-            <a-button type="primary" @click="fetchArticleContent" class="retry-button">
-                重试
-            </a-button>
+            <a-result status="403" title="请求失败" sub-title="文章请求失败，请稍后重试">
+                <template #extra>
+                    <a-button type="primary" @click="fetchArticleContent" class="retry-button">
+                        重试
+                    </a-button>
+                </template>
+            </a-result>
         </template>
 
         <template v-else-if="article">
@@ -237,7 +240,8 @@ const shouldShowTOC = computed(() => {
                     </a-float-button>
                 </div>
 
-                <a-drawer v-if="shouldShowTOC" v-model:visible="tocVisible" placement="left" :closable="false" :width="300" :bodyStyle="{ padding: '16px' }" class="toc-drawer" title="目录">
+                <a-drawer v-if="shouldShowTOC" v-model:visible="tocVisible" placement="left" :closable="false"
+                    :width="300" :bodyStyle="{ padding: '16px' }" class="toc-drawer" title="目录">
                     <template #extra>
                         <a-button type="text" @click="tocVisible = false">
                             <CloseOutlined />关闭
@@ -245,10 +249,11 @@ const shouldShowTOC = computed(() => {
                     </template>
                     <div class="toc-content">
                         <a-anchor :targetOffset="80">
-                            <a-anchor-link v-for="heading in headings" :key="heading.id" :href="`#${heading.id}`" :title="heading.text" :class="{
-                                'active': activeHeadingId === heading.id,
-                                [`toc-level-${heading.level}`]: true
-                            }" @click.prevent="scrollToHeading(heading.id)" />
+                            <a-anchor-link v-for="heading in headings" :key="heading.id" :href="`#${heading.id}`"
+                                :title="heading.text" :class="{
+                                    'active': activeHeadingId === heading.id,
+                                    [`toc-level-${heading.level}`]: true
+                                }" @click.prevent="scrollToHeading(heading.id)" />
                         </a-anchor>
                     </div>
                 </a-drawer>
